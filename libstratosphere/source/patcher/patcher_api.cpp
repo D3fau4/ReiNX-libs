@@ -17,8 +17,8 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <ctype.h>
 #include <dirent.h>
+#include <ctype.h>
 #include <stratosphere.hpp>
 
 /* IPS Patching adapted from Luma3DS (https://github.com/AuroraWright/Luma3DS/blob/master/sysmodules/loader/source/patcher.c) */
@@ -35,7 +35,7 @@ namespace ams::patcher {
         constexpr const char *IpsFileExtension = ".ips";
         constexpr size_t IpsFileExtensionLength = std::strlen(IpsFileExtension);
         constexpr size_t ModuleIpsPatchLength = 2 * sizeof(ro::ModuleId) + IpsFileExtensionLength;
-
+        //ldr::Meta::Aci meta;
         /* Helpers. */
         inline u8 ConvertHexNybble(const char nybble) {
             if ('0' <= nybble && nybble <= '9') {
@@ -174,100 +174,124 @@ namespace ams::patcher {
         }
 
     }
+
     static int is_prefix(u8 *word, int wordlen, int pos){
-        int i, suffixlen = wordlen - pos;
-        for (i = 0; i < suffixlen; i++) {
-            if (word[i] != word[pos+i]) return 0;
-        }
-        return 1;
+    int i, suffixlen = wordlen - pos;
+    for (i = 0; i < suffixlen; i++) {
+        if (word[i] != word[pos+i]) return 0;
     }
+    return 1;
+}
+
 
     static u8* boyer_moore(u8 *string, int stringlen, u8 *pat, int patlen){
-        int delta1[256];
-        int delta2[patlen * sizeof(int)];
-        int i, p;
-        for (i=0; i < 256; i++) delta1[i] = patlen;
-        for (i=0; i < patlen-1; i++) delta1[pat[i]] = patlen-1 - i;
-        int last_prefix_index = patlen-1;
-    
-        // first loop
-        for (p=patlen-1; p>=0; p--) {
-            if (is_prefix(pat, patlen, p+1)) {
-                last_prefix_index = p+1;
-            }
-            delta2[p] = last_prefix_index + (patlen-1 - p);
+    int delta1[256];
+    int delta2[patlen * sizeof(int)];
+    int i, p;
+    for (i=0; i < 256; i++) delta1[i] = patlen;
+    for (i=0; i < patlen-1; i++) delta1[pat[i]] = patlen-1 - i;
+    int last_prefix_index = patlen-1;
+  
+    // first loop
+    for (p=patlen-1; p>=0; p--) {
+        if (is_prefix(pat, patlen, p+1)) {
+            last_prefix_index = p+1;
         }
-    
-        // second loop
-        for (p=0; p < patlen-1; p++) {
-            for (i = 0; (pat[p-i] == pat[patlen-1-i]) && (i < p); i++);
-            int slen = i;
-            if (pat[p - slen] != pat[patlen-1 - slen]) {
-                delta2[patlen-1 - slen] = patlen-1 - p + slen;
-            }
-        }
-    
-        i = patlen-1;
-        while (i < stringlen) {
-            int j = patlen-1;
-            while (j >= 0 && (string[i] == pat[j])) {
-                --i;
-                --j;
-            }
-            if (j < 0) return (string + i+1);
-            i += ((delta1[string[i]] < delta2[j]) ? delta2[j] : delta1[string[i]]);
-        }
-        return NULL;
+        delta2[p] = last_prefix_index + (patlen-1 - p);
     }
+ 
+    // second loop
+    for (p=0; p < patlen-1; p++) {
+        for (i = 0; (pat[p-i] == pat[patlen-1-i]) && (i < p); i++);
+        int slen = i;
+        if (pat[p - slen] != pat[patlen-1 - slen]) {
+            delta2[patlen-1 - slen] = patlen-1 - p + slen;
+        }
+    }
+ 
+    i = patlen-1;
+    while (i < stringlen) {
+        int j = patlen-1;
+        while (j >= 0 && (string[i] == pat[j])) {
+            --i;
+            --j;
+        }
+        if (j < 0) return (string + i+1);
+        i += ((delta1[string[i]] < delta2[j]) ? delta2[j] : delta1[string[i]]);
+    }
+    return NULL;
+}
 
-    static int patch_memory(u8 *start, u32 size, u8 *pattern, u32 patsize, int offset, u8 *replace, u32 repsize, int count)
+    int patch_memory(u8 *start, u32 size, u8 *pattern, u32 patsize, int offset, u8 *replace, u32 repsize, int count)
+{
+    u8 *found;
+    int i;
+    u32 at;
+
+    for (i = 0; i < count; i++){
+        found = boyer_moore(start, size, pattern, patsize);
+        if (found == NULL) break;
+        at = (u32)(found - start);
+        memcpy(found + offset, replace, repsize);
+        if (at + patsize > size) size = 0;
+        else size = size - (at + patsize);
+        start = found + patsize;
+        /*make log*/
+                    FILE *f;
+                    f = fopen("patchd.log", "a");
+                    fprintf(f, "start: %016lX\n size: %016lX\n pattern: %016lX\n patsize: %016lX\n replace %016lX\n repsize: %016lX\n count: %016lX\n",start,size,pattern,patsize,offset,replace,repsize,count);
+                    fclose(f);
+                    /*make log */
+    }
+    /*make log*/
+                    FILE *f;
+                    f = fopen("patch.log", "a");
+                    fprintf(f, "start: %016lX\n size: %016lX\n pattern: %016lX\n patsize: %016lX\n replace %016lX\n repsize: %016lX\n count: %016lX\n",start,size,pattern,patsize,offset,replace,repsize,count);
+                    fclose(f);
+                    /*make log */
+    return i;
+}
+
+    static void ApplyRnxPatch(FILE* patch_file, u8 *mapped_module, size_t mapped_size){
+    u8 patch_count;
+    u8 pattern_length;
+    u8 patch_length;
+    s8 search_multiple;
+    s8 offset;
+    u8 pattern[0x100] = {0};
+    u8 patch[0x100] = {0};
+        /*FILE *f;
+                    f = fopen("ap1.log", "a");
+                    fprintf(f, "patch: %s\n maped: %016lX\n tamano %s", patch_file, mapped_module, mapped_size);
+                    fclose(f);*/
+    if (fread(&patch_count, 1, 1, patch_file) != 1) return;
+
+    for (int i = 0; i < patch_count; i++)
     {
-        u8 *found;
-        int i;
-        u32 at;
+        if (fread(&pattern_length, 1, 1, patch_file) != 1) return;
+        if (fread(&patch_length, 1, 1, patch_file) != 1) return;
+        if (fread(&search_multiple, 1, 1, patch_file) != 1) return;
+        if (fread(&offset, 1, 1, patch_file) != 1) return;
+        if (fread(pattern, pattern_length, 1, patch_file) != 1) return;
+        if (fread(patch, patch_length, 1, patch_file) != 1) return;
 
-        for (i = 0; i < count; i++){
-            found = boyer_moore(start, size, pattern, patsize);
-            if (found == NULL) break;
-            at = (u32)(found - start);
-            memcpy(found + offset, replace, repsize);
-            if (at + patsize > size) size = 0;
-            else size = size - (at + patsize);
-            start = found + patsize;
-        }
-        return i;
+        patch_memory(mapped_module, mapped_size, pattern, pattern_length, offset, patch, patch_length, search_multiple);
+
+                    /*make log
+                    FILE *f;
+                    f = fopen("AP.log", "a");
+                    fprintf(f, "\nmapped_module: %hhn\n ",mapped_module);
+                    fprintf(f, "numero de parche: %016lX\n mapped_size: %016lX\n pattern %016lX\n pattern_length %016lX\n offset %016lX\n patch %016lX\n patch_length %016lX\n search_multiple %016lX",patch_count,mapped_size,pattern,pattern_length,offset,patch,patch_length,search_multiple);
+                    fclose(f);
+                    /*make log */
     }
+}
 
-        static void ApplyRnxPatch(FILE* patch_file, u8 *mapped_module, size_t mapped_size)
-    {
-        u8 patch_count;
-        u8 pattern_length;
-        u8 patch_length;
-        s8 search_multiple;
-        s8 offset;
-        u8 pattern[0x100] = {0};
-        u8 patch[0x100] = {0};
-
-        if (fread(&patch_count, 1, 1, patch_file) != 1) return;
-
-        for (int i = 0; i < patch_count; i++)
-        {
-            if (fread(&pattern_length, 1, 1, patch_file) != 1) return;
-            if (fread(&patch_length, 1, 1, patch_file) != 1) return;
-            if (fread(&search_multiple, 1, 1, patch_file) != 1) return;
-            if (fread(&offset, 1, 1, patch_file) != 1) return;
-            if (fread(pattern, pattern_length, 1, patch_file) != 1) return;
-            if (fread(patch, patch_length, 1, patch_file) != 1) return;
-
-            patch_memory(mapped_module, mapped_size, pattern, pattern_length, offset, patch, patch_length, search_multiple);
-        }
-    }
-    
-    void LocateAndApplyIpsPatchesToModule(const char *patch_dir_name, size_t protected_size, size_t offset, const ro::ModuleId *module_id, u8 *mapped_module, size_t mapped_size) {
+    void LocateAndApplyIpsPatchesToModule(const char *patch_dir_name, size_t protected_size, size_t offset, const ro::ModuleId *module_id, u8 *mapped_module, size_t mapped_size, const ncm::ProgramId program_id) {
         /* Inspect all patches from /ReiNX/<patch_dir>/<*>/<*>.ips */
+        char path[FS_MAX_PATH+1] = {0};
         char magic[4] = {0};
         u64 read_id;
-        char path[FS_MAX_PATH+1] = {0};
         std::snprintf(path, sizeof(path) - 1, "sdmc:/ReiNX/%s", patch_dir_name);
 
         DIR *patches_dir = opendir(path);
@@ -327,17 +351,33 @@ namespace ams::patcher {
                 {
                     fread(magic, 3, 1, patch_file);
                     fread(&read_id, 8, 1, patch_file);
-                    if (strcmp(magic, "RXP") == 0 && read_id == (u64)module_id)
+                    if (strcmp(magic, "RXP") == 0 && read_id == (u64)program_id)
                     {
                         ApplyRnxPatch(patch_file, mapped_module, mapped_size);
+                         FILE *f;
+                        f = fopen("F.log", "a");
+                        fprintf(f, "\ntitle_id (64): %016lX\ntitle_id: %016lX\nrxp title id: %016lX\nmoduleid: %016lX", (u64)program_id,program_id, read_id,module_id);
+                        fclose(f);
+                    return;
                     }
-
+                     FILE *f;
+                    f = fopen("feo.log", "a");
+                        fprintf(f, "\ntitle_id (64): %016lX\ntitle_id: %016lX\nrxp title id: %016lX\nmoduleid: %016lX", (u64)program_id,program_id, read_id,module_id);
+                        fclose(f);
                     fclose(patch_file);
                 }
             }
+             FILE *f;
+            f = fopen("fea.log", "a");
+                        fprintf(f, "\ntitle_id (64): %016lX\ntitle_id: %016lX\nrxp title id: %016lX\nmoduleid: %016lX", (u64)program_id,program_id, read_id,module_id);
+                        fclose(f);
+            }
+            FILE *f;
+                        f = fopen("fl.log", "a");
+                        fprintf(f, "\ntitle_id (64): %016lX\ntitle_id: %016lX\nrxp title id: %016lX\nmoduleid: %016lX", (u64)program_id,program_id, read_id,module_id);
+                        fclose(f);
             closedir(patches_dir);
         }
     }
 
-}
 }
