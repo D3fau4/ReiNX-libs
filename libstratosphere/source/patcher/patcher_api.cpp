@@ -236,19 +236,7 @@ namespace ams::patcher {
         if (at + patsize > size) size = 0;
         else size = size - (at + patsize);
         start = found + patsize;
-        /*make log*/
-                    FILE *f;
-                    f = fopen("patchd.log", "a");
-                    fprintf(f, "start: %016lX\n size: %016lX\n pattern: %016lX\n patsize: %016lX\n replace %016lX\n repsize: %016lX\n count: %016lX\n",start,size,pattern,patsize,offset,replace,repsize,count);
-                    fclose(f);
-                    /*make log */
     }
-    /*make log*/
-                    FILE *f;
-                    f = fopen("patch.log", "a");
-                    fprintf(f, "start: %016lX\n size: %016lX\n pattern: %016lX\n patsize: %016lX\n replace %016lX\n repsize: %016lX\n count: %016lX\n",start,size,pattern,patsize,offset,replace,repsize,count);
-                    fclose(f);
-                    /*make log */
     return i;
 }
 
@@ -260,10 +248,7 @@ namespace ams::patcher {
     s8 offset;
     u8 pattern[0x100] = {0};
     u8 patch[0x100] = {0};
-        /*FILE *f;
-                    f = fopen("ap1.log", "a");
-                    fprintf(f, "patch: %s\n maped: %016lX\n tamano %s", patch_file, mapped_module, mapped_size);
-                    fclose(f);*/
+    
     if (fread(&patch_count, 1, 1, patch_file) != 1) return;
 
     for (int i = 0; i < patch_count; i++)
@@ -276,14 +261,6 @@ namespace ams::patcher {
         if (fread(patch, patch_length, 1, patch_file) != 1) return;
 
         patch_memory(mapped_module, mapped_size, pattern, pattern_length, offset, patch, patch_length, search_multiple);
-
-                    /*make log
-                    FILE *f;
-                    f = fopen("AP.log", "a");
-                    fprintf(f, "\nmapped_module: %hhn\n ",mapped_module);
-                    fprintf(f, "numero de parche: %016lX\n mapped_size: %016lX\n pattern %016lX\n pattern_length %016lX\n offset %016lX\n patch %016lX\n patch_length %016lX\n search_multiple %016lX",patch_count,mapped_size,pattern,pattern_length,offset,patch,patch_length,search_multiple);
-                    fclose(f);
-                    /*make log */
     }
 }
 
@@ -354,28 +331,12 @@ namespace ams::patcher {
                     if (strcmp(magic, "RXP") == 0 && read_id == (u64)program_id)
                     {
                         ApplyRnxPatch(patch_file, mapped_module, mapped_size);
-                         FILE *f;
-                        f = fopen("F.log", "a");
-                        fprintf(f, "\ntitle_id (64): %016lX\ntitle_id: %016lX\nrxp title id: %016lX\nmoduleid: %016lX", (u64)program_id,program_id, read_id,module_id);
-                        fclose(f);
                     return;
                     }
-                     FILE *f;
-                    f = fopen("feo.log", "a");
-                        fprintf(f, "\ntitle_id (64): %016lX\ntitle_id: %016lX\nrxp title id: %016lX\nmoduleid: %016lX", (u64)program_id,program_id, read_id,module_id);
-                        fclose(f);
                     fclose(patch_file);
                 }
             }
-             FILE *f;
-            f = fopen("fea.log", "a");
-                        fprintf(f, "\ntitle_id (64): %016lX\ntitle_id: %016lX\nrxp title id: %016lX\nmoduleid: %016lX", (u64)program_id,program_id, read_id,module_id);
-                        fclose(f);
             }
-            FILE *f;
-                        f = fopen("fl.log", "a");
-                        fprintf(f, "\ntitle_id (64): %016lX\ntitle_id: %016lX\nrxp title id: %016lX\nmoduleid: %016lX", (u64)program_id,program_id, read_id,module_id);
-                        fclose(f);
             closedir(patches_dir);
         }
     }
