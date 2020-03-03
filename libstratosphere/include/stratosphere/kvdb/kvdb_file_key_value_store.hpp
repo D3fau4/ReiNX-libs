@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019 Atmosphère-NX
+ * Copyright (c) 2018-2020 Atmosphère-NX
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -92,7 +92,7 @@ namespace ams::kvdb {
                 static_assert(std::is_pod<Value>::value && !std::is_pointer<Value>::value, "Invalid FileKeyValueStore Value!");
                 size_t size = 0;
                 R_TRY(this->Get(&size, out_value, sizeof(Value), key));
-                AMS_ASSERT(size >= sizeof(Value));
+                AMS_ABORT_UNLESS(size >= sizeof(Value));
                 return ResultSuccess();
             }
 

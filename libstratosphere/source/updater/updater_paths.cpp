@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019 Atmosphère-NX
+ * Copyright (c) 2018-2020 Atmosphère-NX
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,7 +30,7 @@ namespace ams::updater {
         constexpr const char *Package2PathA = "bip:/a/package2";
 
         const char *ChooseCandidatePath(const char * const *candidates, size_t num_candidates) {
-            AMS_ASSERT(num_candidates > 0);
+            AMS_ABORT_UNLESS(num_candidates > 0);
 
             for (size_t i = 0; i < num_candidates; i++) {
                 struct stat buf;

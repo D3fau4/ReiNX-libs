@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019 Atmosphère-NX
+ * Copyright (c) 2018-2020 Atmosphère-NX
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -66,7 +66,7 @@ namespace ams::kvdb {
 
             Result Initialize(size_t size) {
                 /* Check that we're not already initialized. */
-                AMS_ASSERT(this->buffer == nullptr);
+                AMS_ABORT_UNLESS(this->buffer == nullptr);
 
                 /* Allocate a buffer. */
                 this->buffer = static_cast<u8 *>(std::malloc(size));

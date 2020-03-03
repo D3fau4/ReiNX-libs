@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019 Atmosphère-NX
+ * Copyright (c) 2018-2020 Atmosphère-NX
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -39,7 +39,7 @@ namespace ams::os {
                     /* Abort on any error other than timed out/success. */
                     R_TRY_CATCH(condvarWaitTimeout(&this->cv, m, timeout)) {
                         R_CATCH(svc::ResultTimedOut) { return ConditionVariableStatus::TimedOut; }
-                    } R_END_TRY_CATCH_WITH_ASSERT;
+                    } R_END_TRY_CATCH_WITH_ABORT_UNLESS;
 
                     return ConditionVariableStatus::Success;
                 }
@@ -47,7 +47,7 @@ namespace ams::os {
             }
 
             void Wait(::Mutex *m) {
-                R_ASSERT(condvarWait(&this->cv, m));
+                R_ABORT_UNLESS(condvarWait(&this->cv, m));
             }
 
             ConditionVariableStatus TimedWait(os::Mutex *m, u64 timeout) {
