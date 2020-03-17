@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "../ro/ro_types.hpp"
+#include <stratosphere/ro/ro_types.hpp>
 
 namespace ams::patcher {
     /* Helper for applying to code binaries. */
