@@ -35,11 +35,7 @@ namespace ams::patcher {
         constexpr const char *IpsFileExtension = ".ips";
         constexpr size_t IpsFileExtensionLength = std::strlen(IpsFileExtension);
         constexpr size_t ModuleIpsPatchLength = 2 * sizeof(ro::ModuleId) + IpsFileExtensionLength;
-
-        /* Global data. */
-        os::Mutex apply_patch_lock;
-        u8 g_patch_read_buffer[os::MemoryPageSize];
-
+        //ldr::Meta::Aci meta;
         /* Helpers. */
         inline u8 ConvertHexNybble(const char nybble) {
             if ('0' <= nybble && nybble <= '9') {
@@ -54,7 +50,7 @@ namespace ams::patcher {
         bool ParseModuleIdFromPath(ro::ModuleId *out_module_id, const char *name, size_t name_len, size_t extension_len) {
             /* Validate name is hex module id. */
             for (unsigned int i = 0; i < name_len - extension_len; i++) {
-                if (!std::isxdigit(static_cast<unsigned char>(name[i]))) {
+                if (std::isxdigit(name[i]) == 0) {
                     return false;
                 }
             }
@@ -79,28 +75,6 @@ namespace ams::patcher {
             return std::memcmp(&module_id_from_name, module_id, sizeof(*module_id)) == 0;
         }
 
-        bool IsIpsFileForModule(const char *name, const ro::ModuleId *module_id) {
-            const size_t name_len = std::strlen(name);
-
-            /* The path must be correct size for a build id (with trailing zeroes optionally trimmed) + ".ips". */
-            if (!(IpsFileExtensionLength < name_len && name_len <= ModuleIpsPatchLength)) {
-                return false;
-            }
-
-            /* The path must be an even number of characters to conform. */
-            if (!util::IsAligned(name_len, 2)) {
-                return false;
-            }
-
-            /* The path needs to end with .ips. */
-            if (std::strcmp(name + name_len - IpsFileExtensionLength, IpsFileExtension) != 0) {
-                return false;
-            }
-
-            /* The path needs to match the module id. */
-            return MatchesModuleId(name, name_len, IpsFileExtensionLength, module_id);
-        }
-
         inline bool IsIpsTail(bool is_ips32, u8 *buffer) {
             if (is_ips32) {
                 return std::memcmp(buffer, Ips32TailMagic, sizeof(Ips32TailMagic)) == 0;
@@ -121,7 +95,7 @@ namespace ams::patcher {
             return (buffer[0] << 8) | (buffer[1]);
         }
 
-        void ApplyIpsPatch(u8 *mapped_module, size_t mapped_size, size_t protected_size, size_t offset, bool is_ips32, fs::FileHandle file) {
+        void ApplyIpsPatch(u8 *mapped_module, size_t mapped_size, size_t protected_size, size_t offset, bool is_ips32, FILE *f_ips) {
             /* Validate offset/protected size. */
             AMS_ABORT_UNLESS(offset <= protected_size);
 
@@ -176,9 +150,9 @@ namespace ams::patcher {
                             const u32 diff = protected_size - patch_offset;
                             patch_offset += diff;
                             patch_size -= diff;
-                            file_offset += diff;
+                            fseek(f_ips, diff, SEEK_CUR);
                         } else {
-                            file_offset += patch_size;
+                            fseek(f_ips, patch_size, SEEK_CUR);
                             continue;
                         }
                     }
@@ -193,7 +167,7 @@ namespace ams::patcher {
                     }
                     AMS_ABORT_UNLESS(fread(mapped_module + patch_offset, read_size, 1, f_ips) == 1);
                     if (patch_size > read_size) {
-                        file_offset += patch_size - read_size;
+                        fseek(f_ips, patch_size - read_size, SEEK_CUR);
                     }
                 }
             }
@@ -316,8 +290,19 @@ namespace ams::patcher {
                             continue;
                         }
 
-                /* Print the path for this file. */
-                std::snprintf(path + patch_dir_path_len, sizeof(path) - patch_dir_path_len, "/%s", entry.name);
+                        size_t name_len = strlen(ent->d_name);
+                        if (!(IpsFileExtensionLength < name_len && name_len <= ModuleIpsPatchLength)) {
+                            continue;
+                        }
+                        if ((name_len & 1) != 0) {
+                            continue;
+                        }
+                        if (std::strcmp(ent->d_name + name_len - IpsFileExtensionLength, IpsFileExtension) != 0) {
+                            continue;
+                        }
+                        if (!MatchesModuleId(ent->d_name, name_len, IpsFileExtensionLength, module_id)) {
+                            continue;
+                        }
 
                         std::snprintf(path, sizeof(path) - 1, "sdmc:/ReiNX/%s/%s/%s", patch_dir_name, pdir_ent->d_name, ent->d_name);
                         FILE *f_ips = fopen(path, "rb");
