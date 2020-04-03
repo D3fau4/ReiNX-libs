@@ -56,7 +56,7 @@ namespace ams::fs {
 
             /* Print a path to the program's package. */
             fssrv::sf::Path sf_path;
-            R_TRY(FspPathPrintf(std::addressof(sf_path), "%s:/atmosphere/contents/%016lx/exefs.nsp", impl::SdCardFileSystemMountName, program_id.value));
+            R_TRY(FspPathPrintf(std::addressof(sf_path), "%s:/ReiNX/contents/%016lx/exefs.nsp", impl::SdCardFileSystemMountName, program_id.value));
 
             return OpenPackageFileSystemImpl(out, sf_path.str);
         }
@@ -171,7 +171,7 @@ namespace ams::fs {
 
                     /* Create a redirection filesystem to the relevant content folder. */
                     char path[fs::EntryNameLengthMax + 1];
-                    std::snprintf(path, sizeof(path), "/atmosphere/contents/%016lx/exefs", program_id.value);
+                    std::snprintf(path, sizeof(path), "/ReiNX/contents/%016lx/exefs", program_id.value);
 
                     auto subdir_fs = std::make_unique<fssystem::SubDirectoryFileSystem>(std::move(sd_fs), path);
                     if (subdir_fs == nullptr) {
