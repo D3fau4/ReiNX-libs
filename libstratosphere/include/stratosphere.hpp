@@ -25,9 +25,6 @@
 /* Sadly required shims. */
 #include <stratosphere/svc/svc_stratosphere_shims.hpp>
 
-/* Sadly required shims. */
-#include "stratosphere/svc/svc_stratosphere_shims.hpp"
-
 /* Critical modules with no dependencies. */
 #include <stratosphere/ams.hpp>
 #include <stratosphere/os.hpp>

@@ -16,17 +16,6 @@
 
 #pragma once
 #include <vapours.hpp>
-<<<<<<< HEAD:libstratosphere/include/stratosphere/fssystem/fssystem_thread_priority_changer.hpp
-#include <stratosphere/os.hpp>
-
-namespace ams::fssystem {
-
-    class ScopedThreadPriorityChanger {
-        public:
-            enum class Mode {
-                Absolute,
-                Relative,
-=======
 #include <stratosphere/psc/sf/psc_sf_i_pm_module.hpp>
 
 namespace ams::psc::sf {
@@ -35,16 +24,8 @@ namespace ams::psc::sf {
         protected:
             enum class CommandId {
                 Initialize = 0,
->>>>>>> 96825c7524c333536dcffadb76341bf599785538:libstratosphere/include/stratosphere/psc/sf/psc_sf_i_pm_service.hpp
             };
-        private:
-            /* TODO */
         public:
-<<<<<<< HEAD:libstratosphere/include/stratosphere/fssystem/fssystem_thread_priority_changer.hpp
-            ALWAYS_INLINE explicit ScopedThreadPriorityChanger(s32 priority, Mode mode) {
-                /* TODO */
-            }
-=======
             /* Actual commands. */
             virtual Result Initialize(ams::sf::Out<std::shared_ptr<psc::sf::IPmModule>> out) = 0;
         public:
@@ -52,10 +33,5 @@ namespace ams::psc::sf {
                 MAKE_SERVICE_COMMAND_META(Initialize),
             };
     };
->>>>>>> 96825c7524c333536dcffadb76341bf599785538:libstratosphere/include/stratosphere/psc/sf/psc_sf_i_pm_service.hpp
 
-            ALWAYS_INLINE ~ScopedThreadPriorityChanger() {
-                /* TODO */
-            }
-    };
 }
