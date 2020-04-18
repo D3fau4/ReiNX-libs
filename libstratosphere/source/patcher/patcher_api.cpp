@@ -13,6 +13,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <cstdlib>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
+#include <dirent.h>
+#include <ctype.h>
 #include <stratosphere.hpp>
 
 /* IPS Patching adapted from Luma3DS (https://github.com/AuroraWright/Luma3DS/blob/master/sysmodules/loader/source/patcher.c) */
@@ -219,6 +225,70 @@ namespace ams::patcher {
 
     }
 
+    static int is_prefix(u8 *word, int wordlen, int pos){
+    int i, suffixlen = wordlen - pos;
+    for (i = 0; i < suffixlen; i++) {
+        if (word[i] != word[pos+i]) return 0;
+    }
+    return 1;
+}
+
+
+    static u8* boyer_moore(u8 *string, int stringlen, u8 *pat, int patlen){
+    int delta1[256];
+    int delta2[patlen * sizeof(int)];
+    int i, p;
+    for (i=0; i < 256; i++) delta1[i] = patlen;
+    for (i=0; i < patlen-1; i++) delta1[pat[i]] = patlen-1 - i;
+    int last_prefix_index = patlen-1;
+    // first loop
+    for (p=patlen-1; p>=0; p--) {
+        if (is_prefix(pat, patlen, p+1)) {
+            last_prefix_index = p+1;
+        }
+        delta2[p] = last_prefix_index + (patlen-1 - p);
+    }
+ 
+    // second loop
+    for (p=0; p < patlen-1; p++) {
+        for (i = 0; (pat[p-i] == pat[patlen-1-i]) && (i < p); i++);
+        int slen = i;
+        if (pat[p - slen] != pat[patlen-1 - slen]) {
+            delta2[patlen-1 - slen] = patlen-1 - p + slen;
+        }
+    }
+ 
+    i = patlen-1;
+    while (i < stringlen) {
+        int j = patlen-1;
+        while (j >= 0 && (string[i] == pat[j])) {
+            --i;
+            --j;
+        }
+        if (j < 0) return (string + i+1);
+        i += ((delta1[string[i]] < delta2[j]) ? delta2[j] : delta1[string[i]]);
+    }
+    return NULL;
+}
+
+    int patch_memory(u8 *start, u32 size, u8 *pattern, u32 patsize, int offset, u8 *replace, u32 repsize, int count)
+{
+    u8 *found;
+    int i;
+    u32 at;
+
+    for (i = 0; i < count; i++){
+        found = boyer_moore(start, size, pattern, patsize);
+        if (found == NULL) break;
+        at = (u32)(found - start);
+        memcpy(found + offset, replace, repsize);
+        if (at + patsize > size) size = 0;
+        else size = size - (at + patsize);
+        start = found + patsize;
+    }
+    return i;
+}
+
     static void ApplyRnxPatch(fs::FileHandle patch_file, u8 *mapped_module, size_t mapped_size){
     u8 patch_count;
     u8 pattern_length;
@@ -227,21 +297,43 @@ namespace ams::patcher {
     s8 offset;
     u8 pattern[0x100] = {0};
     u8 patch[0x100] = {0};
+    int rxpoffset = 12;
     // he llegado a aquí 
-    //fs::ReadFile(patch_file, 11, &patch_count, 1); if (patch_count != 1 ) return;            //if (fread(&patch_count, 1, 1, patch_file) != 1) return;
-    FILE *f;
-                    f = fopen("patchd.log", "a");
-                    fprintf(f, "start: %016lX\n size: %016lX\n pattern: %016lX\n patsize: %016lX\n replace %016lX\n repsize: %016lX\n count: %016lX\n");
-                    fclose(f);
+    if (R_FAILED(fs::ReadFile(patch_file, 11, &patch_count, 1))){                   //if (fread(&patch_count, 1, 1, patch_file) != 1) return;
+        
+    } 
+        
     for (int i = 0; i < patch_count; i++)
     {
-        /*fs::ReadFile(patch_file, 1, &pattern_length, 1); if (pattern_length != 1) return;        //if (fread(&pattern_length, 1, 1, patch_file) != 1) return;
-        fs::ReadFile(patch_file, 1, &patch_length, 1); if (patch_length != 1) return;            //if (fread(&patch_length, 1, 1, patch_file) != 1) return;
-        fs::ReadFile(patch_file, 1, &search_multiple, 1); if (search_multiple != 1) return;      //if (fread(&search_multiple, 1, 1, patch_file) != 1) return;
-        fs::ReadFile(patch_file, 1, &offset, 1); if (offset != 1) return;                        //if (fread(&offset, 1, 1, patch_file) != 1) return;
-        fs::ReadFile(patch_file, 1, pattern, pattern_length);                                    //if (fread(pattern, pattern_length, 1, patch_file) != 1) return;
-        fs::ReadFile(patch_file, 1, patch, patch_length);                                        //if (fread(patch, patch_length, 1, patch_file) != 1) return;
-        patch_memory(mapped_module, mapped_size, pattern, pattern_length, offset, patch, patch_length, search_multiple);*/
+        if (R_FAILED(fs::ReadFile(patch_file, rxpoffset, &pattern_length, 1)))       //if (fread(&pattern_length, 1, 1, patch_file) != 1) return;
+        {
+            return;
+        }
+        rxpoffset = (rxpoffset + 1);
+        if (R_FAILED(fs::ReadFile(patch_file, rxpoffset, &patch_length, 1)))         //if (fread(&patch_length, 1, 1, patch_file) != 1) return;
+        {
+                    return;
+        }
+        rxpoffset = (rxpoffset + 1);
+        if (R_FAILED(fs::ReadFile(patch_file, rxpoffset, &search_multiple, 1)))      //if (fread(&search_multiple, 1, 1, patch_file) != 1) return;
+        {
+                    return;
+        }
+        rxpoffset = (rxpoffset + 1);
+        if (R_FAILED(fs::ReadFile(patch_file, rxpoffset, &offset, 1)))               //if (fread(&offset, 1, 1, patch_file) != 1) return;
+        {
+                    return;
+        }
+        rxpoffset = (rxpoffset + 1);
+        if (R_FAILED(fs::ReadFile(patch_file, rxpoffset, pattern, pattern_length))){ //if (fread(pattern, pattern_length, 1, patch_file) != 1) return;
+                    return;
+        }
+        rxpoffset = (rxpoffset + pattern_length);                                    
+        if (R_FAILED(fs::ReadFile(patch_file, rxpoffset, patch, patch_length))) {    //if (fread(patch, patch_length, 1, patch_file) != 1) return;
+            return;
+        }                                        
+        rxpoffset = (rxpoffset + patch_length);
+        patch_memory(mapped_module, mapped_size, pattern, pattern_length, offset, patch, patch_length, search_multiple);
     }
 }
 
