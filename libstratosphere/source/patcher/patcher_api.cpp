@@ -312,21 +312,21 @@ namespace ams::patcher {
         rxpoffset = (rxpoffset + 1);
         if (R_FAILED(fs::ReadFile(patch_file, rxpoffset, &patch_length, 1)))         //if (fread(&patch_length, 1, 1, patch_file) != 1) return;
         {
-                    return;
+            return;
         }
         rxpoffset = (rxpoffset + 1);
         if (R_FAILED(fs::ReadFile(patch_file, rxpoffset, &search_multiple, 1)))      //if (fread(&search_multiple, 1, 1, patch_file) != 1) return;
         {
-                    return;
+            return;
         }
         rxpoffset = (rxpoffset + 1);
         if (R_FAILED(fs::ReadFile(patch_file, rxpoffset, &offset, 1)))               //if (fread(&offset, 1, 1, patch_file) != 1) return;
         {
-                    return;
+            return;
         }
         rxpoffset = (rxpoffset + 1);
         if (R_FAILED(fs::ReadFile(patch_file, rxpoffset, pattern, pattern_length))){ //if (fread(pattern, pattern_length, 1, patch_file) != 1) return;
-                    return;
+            return;
         }
         rxpoffset = (rxpoffset + pattern_length);                                    
         if (R_FAILED(fs::ReadFile(patch_file, rxpoffset, patch, patch_length))) {    //if (fread(patch, patch_length, 1, patch_file) != 1) return;
