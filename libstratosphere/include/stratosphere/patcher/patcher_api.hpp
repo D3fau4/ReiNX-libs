@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 Atmosphère-NX, D3fau4
+ * Copyright (c) 2018-2020 Atmosphère-NX
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,6 +21,6 @@
 namespace ams::patcher {
     /* Helper for applying to code binaries. */
 
-    void LocateAndApplyIpsPatchesToModule(const char *patch_dir, size_t protected_size, size_t offset, const ro::ModuleId *module_id, u8 *mapped_module, size_t mapped_size, const ncm::ProgramId program_id);
+    void LocateAndApplyIpsPatchesToModule(const char *mount_name, const char *patch_dir, size_t protected_size, size_t offset, const ro::ModuleId *module_id, u8 *mapped_module, size_t mapped_size, const ncm::ProgramId program_id);
 
 }

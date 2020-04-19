@@ -85,4 +85,5 @@ namespace ams::ncm {
                 return ResultSuccess();
             }
     };
+
 }
