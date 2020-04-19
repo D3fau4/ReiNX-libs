@@ -298,7 +298,6 @@ namespace ams::patcher {
     u8 pattern[0x100] = {0};
     u8 patch[0x100] = {0};
     int rxpoffset = 12;
-    // he llegado a aquí 
     if (R_FAILED(fs::ReadFile(patch_file, 11, &patch_count, 1))){                   //if (fread(&patch_count, 1, 1, patch_file) != 1) return;
         
     } 
