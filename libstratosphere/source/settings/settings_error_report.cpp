@@ -14,25 +14,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <stratosphere.hpp>
+#include "impl/settings_error_report_impl.hpp"
 
-namespace ams::settings::fwdbg {
+namespace ams::settings::system {
 
-    bool IsDebugModeEnabled() {
-        bool value = false;
-        R_ABORT_UNLESS(::setsysGetDebugModeFlag(std::addressof(value)));
-        return value;
-    }
-
-    size_t WEAK_SYMBOL GetSettingsItemValueSize(const char *name, const char *key) {
-        u64 size = 0;
-        R_ABORT_UNLESS(setsysGetSettingsItemValueSize(name, key, &size));
-        return size;
-    }
-
-    size_t WEAK_SYMBOL GetSettingsItemValue(void *dst, size_t dst_size, const char *name, const char *key) {
-        u64 size = 0;
-        R_ABORT_UNLESS(setsysGetSettingsItemValue(name, key, dst, dst_size, &size));
-        return size;
+    ErrorReportSharePermission GetErrorReportSharePermission() {
+        s32 perm = 0;
+        R_ABORT_UNLESS(settings::impl::GetErrorReportSharePermission(std::addressof(perm)));
+        return static_cast<ErrorReportSharePermission>(perm);
     }
 
 }

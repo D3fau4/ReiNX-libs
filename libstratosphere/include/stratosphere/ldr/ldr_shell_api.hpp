@@ -15,12 +15,17 @@
  */
 
 #pragma once
+#include <vapours.hpp>
+#include <stratosphere/ncm/ncm_ids.hpp>
+#include <stratosphere/ldr/ldr_types.hpp>
 
-#include "settings/settings_types.hpp"
-#include "settings/settings_fwdbg_types.hpp"
-#include "settings/settings_fwdbg_api.hpp"
-#include "settings/system/settings_error_report.hpp"
-#include "settings/system/settings_firmware_version.hpp"
-#include "settings/system/settings_product_model.hpp"
-#include "settings/system/settings_region.hpp"
-#include "settings/system/settings_serial_number.hpp"
+namespace ams::ldr {
+
+    /* Shell API. */
+    Result InitializeForShell();
+    Result FinalizeForShell();
+
+    Result SetProgramArgument(ncm::ProgramId program_id, const void *arg, size_t size);
+    Result FlushArguments();
+
+}

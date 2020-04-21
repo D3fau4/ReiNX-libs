@@ -15,12 +15,16 @@
  */
 
 #pragma once
+#include <vapours/results/results_common.hpp>
 
-#include "settings/settings_types.hpp"
-#include "settings/settings_fwdbg_types.hpp"
-#include "settings/settings_fwdbg_api.hpp"
-#include "settings/system/settings_error_report.hpp"
-#include "settings/system/settings_firmware_version.hpp"
-#include "settings/system/settings_product_model.hpp"
-#include "settings/system/settings_region.hpp"
-#include "settings/system/settings_serial_number.hpp"
+namespace ams::pgl {
+
+    R_DEFINE_NAMESPACE_RESULT_MODULE(228);
+
+    R_DEFINE_ERROR_RESULT(NotAvailable,               2);
+    R_DEFINE_ERROR_RESULT(ApplicationNotRunning,      3);
+    R_DEFINE_ERROR_RESULT(BufferNotEnough,            4);
+    R_DEFINE_ERROR_RESULT(ApplicationContentNotFound, 5);
+    R_DEFINE_ERROR_RESULT(ContentMetaNotFound,        6);
+
+}

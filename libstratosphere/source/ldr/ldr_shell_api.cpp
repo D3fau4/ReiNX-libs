@@ -15,24 +15,23 @@
  */
 #include <stratosphere.hpp>
 
-namespace ams::settings::fwdbg {
+namespace ams::ldr {
 
-    bool IsDebugModeEnabled() {
-        bool value = false;
-        R_ABORT_UNLESS(::setsysGetDebugModeFlag(std::addressof(value)));
-        return value;
+    Result InitializeForShell() {
+        return ::ldrShellInitialize();
     }
 
-    size_t WEAK_SYMBOL GetSettingsItemValueSize(const char *name, const char *key) {
-        u64 size = 0;
-        R_ABORT_UNLESS(setsysGetSettingsItemValueSize(name, key, &size));
-        return size;
+    Result FinalizeForShell() {
+        ::ldrShellExit();
+        return ResultSuccess();
     }
 
-    size_t WEAK_SYMBOL GetSettingsItemValue(void *dst, size_t dst_size, const char *name, const char *key) {
-        u64 size = 0;
-        R_ABORT_UNLESS(setsysGetSettingsItemValue(name, key, dst, dst_size, &size));
-        return size;
+    Result SetProgramArgument(ncm::ProgramId program_id, const void *arg, size_t size) {
+        return ::ldrShellSetProgramArguments(static_cast<u64>(program_id), arg, size);
+    }
+
+    Result FlushArguments() {
+        return ::ldrShellFlushArguments();
     }
 
 }

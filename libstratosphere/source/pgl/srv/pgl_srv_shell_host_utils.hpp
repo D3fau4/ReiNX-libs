@@ -13,26 +13,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#pragma once
 #include <stratosphere.hpp>
 
-namespace ams::settings::fwdbg {
+namespace ams::pgl::srv {
 
-    bool IsDebugModeEnabled() {
-        bool value = false;
-        R_ABORT_UNLESS(::setsysGetDebugModeFlag(std::addressof(value)));
-        return value;
-    }
-
-    size_t WEAK_SYMBOL GetSettingsItemValueSize(const char *name, const char *key) {
-        u64 size = 0;
-        R_ABORT_UNLESS(setsysGetSettingsItemValueSize(name, key, &size));
-        return size;
-    }
-
-    size_t WEAK_SYMBOL GetSettingsItemValue(void *dst, size_t dst_size, const char *name, const char *key) {
-        u64 size = 0;
-        R_ABORT_UNLESS(setsysGetSettingsItemValue(name, key, dst, dst_size, &size));
-        return size;
-    }
+    Result LaunchProgramFromHost(os::ProcessId *out, const char *content_path, u32 pm_flags);
+    Result GetHostContentMetaInfo(pgl::ContentMetaInfo *out, const char *content_path);
 
 }

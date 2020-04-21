@@ -16,11 +16,8 @@
 
 #pragma once
 
-#include "settings/settings_types.hpp"
-#include "settings/settings_fwdbg_types.hpp"
-#include "settings/settings_fwdbg_api.hpp"
-#include "settings/system/settings_error_report.hpp"
-#include "settings/system/settings_firmware_version.hpp"
-#include "settings/system/settings_product_model.hpp"
-#include "settings/system/settings_region.hpp"
-#include "settings/system/settings_serial_number.hpp"
+#include <stratosphere/pgl/pgl_types.hpp>
+#include <stratosphere/pgl/pgl_event_observer.hpp>
+#include <stratosphere/pgl/pgl_shell_api.hpp>
+#include <stratosphere/pgl/pgl_shell_api.hpp>
+#include <stratosphere/pgl/srv/pgl_srv_api.hpp>
