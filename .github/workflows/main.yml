@@ -18,7 +18,18 @@ jobs:
         sudo dpkg -i devkitpro-pacman.deb
         sudo dkp-pacman -S $(dkp-pacman -Ssq switch-*) --noconfirm
         sudo dkp-pacman -S devkit-env  devkitARM  devkitarm-crtls devkitarm-rules --noconfirm
-    - name: Building NX_Sysmodules
+        
+    - name: Install Libnx
+      run: |
+        export DEVKITPRO=/opt/devkitpro
+        export DEVKITARM=${DEVKITPRO}/devkitARM
+        export DEVKITPPC=${DEVKITPRO}/devkitPPC
+        export PATH=${DEVKITPRO}/tools/bin:$PATH
+        git clone https://github.com/switchbrew/libnx
+        make -C libnx/nx/ -j$(nproc)
+        sudo cp ./libnx/nx/* /opt/devkitpro/libnx/ -r -f -v
+        
+    - name: Building ReiNX-libs
       run: |
         echo ##########################
         echo #     SETTING PATH       #
