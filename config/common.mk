@@ -14,7 +14,10 @@ ifeq ($(strip $(ATMOSPHERE_CPU)),)
 export ATMOSPHERE_CPU   := arm-cortex-a57
 endif
 
-export ATMOSPHERE_DEFINES  := -DATMOSPHERE
+ver_maj ?= 0
+ver_min ?= 0
+
+export ATMOSPHERE_DEFINES  := -DATMOSPHERE -DVERSION_MAJOR='$(ver_maj)' -DVERSION_MINOR='$(ver_min)'
 export ATMOSPHERE_SETTINGS := -fPIE -g
 export ATMOSPHERE_CFLAGS   := -Wall -ffunction-sections -fdata-sections -fno-strict-aliasing -fwrapv \
                           -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-stack-protector
