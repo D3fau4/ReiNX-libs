@@ -21,7 +21,7 @@ export ATMOSPHERE_DEFINES  := -DATMOSPHERE -DVERSION_MAJOR='$(ver_maj)' -DVERSIO
 export ATMOSPHERE_SETTINGS := -fPIE -g
 export ATMOSPHERE_CFLAGS   := -Wall -ffunction-sections -fdata-sections -fno-strict-aliasing -fwrapv \
                           -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-stack-protector
-export ATMOSPHERE_CXXFLAGS := -fno-rtti -fno-exceptions -std=gnu++17
+export ATMOSPHERE_CXXFLAGS := -fno-rtti -fno-exceptions -std=gnu++20
 export ATMOSPHERE_ASFLAGS  :=
 
 
