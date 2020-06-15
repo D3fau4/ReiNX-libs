@@ -13,6 +13,7 @@ ifeq ($(strip $(ATMOSPHERE_CPU)),)
 export ATMOSPHERE_CPU   := arm-cortex-a57
 endif
 
+endif
 ver_maj ?= 0
 ver_min ?= 0
 
