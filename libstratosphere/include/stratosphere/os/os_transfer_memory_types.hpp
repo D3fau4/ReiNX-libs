@@ -13,17 +13,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #pragma once
+#include <vapours.hpp>
+#include <stratosphere/os/impl/os_internal_critical_section.hpp>
 
-namespace ams::sf {
+namespace ams::os {
 
-    /* Helper structs for serialization of buffers. */
-    struct LargeData{};
+    struct TransferMemoryType {
+        enum State {
+            State_NotInitialized = 0,
+            State_Created        = 1,
+            State_Mapped         = 2,
+            State_Detached       = 3,
+        };
 
-    struct PrefersMapAliasTransferMode{};
+        u8 state;
+        bool handle_managed;
+        bool allocated;
 
-    struct PrefersPointerTransferMode{};
+        void *address;
+        size_t size;
+        Handle handle;
 
-    struct PrefersAutoSelectTransferMode{};
+        mutable impl::InternalCriticalSectionStorage cs_transfer_memory;
+    };
+    static_assert(std::is_trivial<TransferMemoryType>::value);
 
 }

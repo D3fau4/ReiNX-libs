@@ -14,16 +14,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+#include <stratosphere.hpp>
 
-namespace ams::sf {
+namespace ams::os::impl {
 
-    /* Helper structs for serialization of buffers. */
-    struct LargeData{};
+    class TransferMemoryImpl {
+        public:
+            static Result Create(Handle *out, void *address, size_t size, MemoryPermission perm);
+            static void Close(Handle handle);
 
-    struct PrefersMapAliasTransferMode{};
-
-    struct PrefersPointerTransferMode{};
-
-    struct PrefersAutoSelectTransferMode{};
+            static Result Map(void **out, Handle handle, void *address, size_t size, MemoryPermission owner_perm);
+            static void Unmap(Handle handle, void *address, size_t size);
+    };
 
 }

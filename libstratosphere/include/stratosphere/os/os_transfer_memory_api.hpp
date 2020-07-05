@@ -13,17 +13,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #pragma once
+#include <vapours.hpp>
+#include <stratosphere/os/os_memory_permission.hpp>
 
-namespace ams::sf {
+namespace ams::os {
 
-    /* Helper structs for serialization of buffers. */
-    struct LargeData{};
+    struct TransferMemoryType;
 
-    struct PrefersMapAliasTransferMode{};
+    Result CreateTransferMemory(TransferMemoryType *tmem, void *address, size_t size, MemoryPermission perm);
 
-    struct PrefersPointerTransferMode{};
+    Result AttachTransferMemory(TransferMemoryType *tmem, size_t size, Handle handle, bool managed);
+    Handle DetachTransferMemory(TransferMemoryType *tmem);
 
-    struct PrefersAutoSelectTransferMode{};
+    void DestroyTransferMemory(TransferMemoryType *tmem);
+
+    Result MapTransferMemory(void **out, TransferMemoryType *tmem, MemoryPermission owner_perm);
+    void UnmapTransferMemory(TransferMemoryType *tmem);
 
 }

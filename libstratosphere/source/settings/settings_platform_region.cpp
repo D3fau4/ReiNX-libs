@@ -13,17 +13,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once
+#include <stratosphere.hpp>
+#include "impl/settings_platform_region_impl.hpp"
 
-namespace ams::sf {
+namespace ams::settings::system {
 
-    /* Helper structs for serialization of buffers. */
-    struct LargeData{};
-
-    struct PrefersMapAliasTransferMode{};
-
-    struct PrefersPointerTransferMode{};
-
-    struct PrefersAutoSelectTransferMode{};
+    PlatformRegion GetPlatformRegion() {
+        if (hos::GetVersion() >= hos::Version_9_0_0) {
+            s32 region = 0;
+            R_ABORT_UNLESS(settings::impl::GetPlatformRegion(std::addressof(region)));
+            return static_cast<PlatformRegion>(region);
+        } else {
+            return PlatformRegion_Global;
+        }
+    }
 
 }

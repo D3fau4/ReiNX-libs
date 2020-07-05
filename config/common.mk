@@ -19,8 +19,10 @@ ver_min ?= 0
 
 export ATMOSPHERE_DEFINES  := -DATMOSPHERE -DVERSION_MAJOR='$(ver_maj)' -DVERSION_MINOR='$(ver_min)'
 export ATMOSPHERE_SETTINGS := -fPIE -g
-export ATMOSPHERE_CFLAGS   := -Wall -ffunction-sections -fdata-sections -fno-strict-aliasing -fwrapv \
-                          -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-stack-protector
+export ATMOSPHERE_CFLAGS   := -Wall -ffunction-sections -fdata-sections -fno-strict-aliasing -fwrapv  \
+                              -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-stack-protector \
+                              -Wno-format-truncation
+
 export ATMOSPHERE_CXXFLAGS := -fno-rtti -fno-exceptions -std=gnu++20
 export ATMOSPHERE_ASFLAGS  :=
 

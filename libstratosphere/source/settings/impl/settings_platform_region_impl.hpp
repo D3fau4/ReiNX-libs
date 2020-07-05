@@ -14,16 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+#include <stratosphere.hpp>
 
-namespace ams::sf {
+namespace ams::settings::impl {
 
-    /* Helper structs for serialization of buffers. */
-    struct LargeData{};
-
-    struct PrefersMapAliasTransferMode{};
-
-    struct PrefersPointerTransferMode{};
-
-    struct PrefersAutoSelectTransferMode{};
+    Result GetPlatformRegion(s32 *out);
 
 }

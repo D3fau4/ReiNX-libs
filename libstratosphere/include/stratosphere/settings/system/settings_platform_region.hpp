@@ -13,17 +13,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #pragma once
+#include <vapours.hpp>
+#include <stratosphere/settings/settings_types.hpp>
 
-namespace ams::sf {
+namespace ams::settings::system {
 
-    /* Helper structs for serialization of buffers. */
-    struct LargeData{};
+    enum PlatformRegion {
+        PlatformRegion_Invalid = 0,
+        PlatformRegion_Global  = 1,
+        PlatformRegion_China   = 2,
+    };
 
-    struct PrefersMapAliasTransferMode{};
-
-    struct PrefersPointerTransferMode{};
-
-    struct PrefersAutoSelectTransferMode{};
+    PlatformRegion GetPlatformRegion();
 
 }
