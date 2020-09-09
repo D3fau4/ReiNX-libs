@@ -15,12 +15,15 @@
  */
 
 #pragma once
+#include <vapours.hpp>
+#include <stratosphere/sf.hpp>
 
-#include <stratosphere/ldr/ldr_types.hpp>
-#include <stratosphere/ldr/ldr_shell_api.hpp>
-#include <stratosphere/ldr/ldr_pm_api.hpp>
-#include <stratosphere/ldr/impl/ldr_process_manager_interface.hpp>
-#include <stratosphere/ldr/impl/ldr_debug_monitor_interface.hpp>
-#include <stratosphere/ldr/impl/ldr_shell_interface.hpp>
-#include <stratosphere/ldr/impl/ldr_TX_interface.hpp>
-#include <stratosphere/ldr/impl/ldr_rnx_interface.hpp>
+namespace ams::ldr::impl
+{
+    #define AMS_LDR_I_RNX_INTERFACE_INTERFACE_INFO(C, H)                                           \
+        AMS_SF_METHOD_INFO(C, H, 0, Result, GetReiNXVersion, (sf::Out<u32> maj, sf::Out<u32> min)) \
+        AMS_SF_METHOD_INFO(C, H, 1, Result, SetHbTidForDelta,  (u64 tid))
+
+    AMS_SF_DEFINE_INTERFACE(RNXService, AMS_LDR_I_RNX_INTERFACE_INTERFACE_INFO)
+
+} // namespace ams::ldr::impl
