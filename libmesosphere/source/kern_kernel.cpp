@@ -116,11 +116,13 @@ namespace ams::kern {
     }
 
     void Kernel::PrintLayout() {
+        const auto target_fw = kern::GetTargetFirmware();
+
         /* Print out the kernel version. */
-        /* TODO: target firmware, if we support that? */
         MESOSPHERE_LOG("Horizon Kernel (Mesosphere)\n");
         MESOSPHERE_LOG("Built:                  %s %s\n", __DATE__, __TIME__);
         MESOSPHERE_LOG("Atmosphere version:     %d.%d.%d-%s\n", ATMOSPHERE_RELEASE_VERSION, ATMOSPHERE_GIT_REVISION);
+        MESOSPHERE_LOG("Target Firmware:        %d.%d.%d\n", (target_fw >> 24) & 0xFF, (target_fw >> 16) & 0xFF, (target_fw >> 8) & 0xFF);
         MESOSPHERE_LOG("Supported OS version:   %d.%d.%d\n", ATMOSPHERE_SUPPORTED_HOS_VERSION_MAJOR, ATMOSPHERE_SUPPORTED_HOS_VERSION_MINOR, ATMOSPHERE_SUPPORTED_HOS_VERSION_MICRO);
         MESOSPHERE_LOG("\n");
 
@@ -137,7 +139,7 @@ namespace ams::kern {
         PrintMemoryRegion("        Misc",           KMemoryLayout::GetKernelMiscRegionExtents());
         PrintMemoryRegion("        Slab",           KMemoryLayout::GetKernelSlabRegionExtents());
         PrintMemoryRegion("    CoreLocalRegion",    KMemoryLayout::GetCoreLocalRegion());
-        PrintMemoryRegion("    LinearRegion",       KMemoryLayout::GetLinearRegionExtents());
+        PrintMemoryRegion("    LinearRegion",       KMemoryLayout::GetLinearRegionVirtualExtents());
         MESOSPHERE_LOG("\n");
 
         MESOSPHERE_LOG("Physical Memory Layout\n");
@@ -150,11 +152,21 @@ namespace ams::kern {
         PrintMemoryRegion("        PageTableHeap",  KMemoryLayout::GetKernelPageTableHeapRegionPhysicalExtents());
         PrintMemoryRegion("        InitPageTable",  KMemoryLayout::GetKernelInitPageTableRegionPhysicalExtents());
         PrintMemoryRegion("    MemoryPoolRegion",   KMemoryLayout::GetKernelPoolPartitionRegionPhysicalExtents());
-        PrintMemoryRegion("        System",         KMemoryLayout::GetKernelSystemPoolRegionPhysicalExtents());
-        PrintMemoryRegion("        Internal",       KMemoryLayout::GetKernelMetadataPoolRegionPhysicalExtents());
-        PrintMemoryRegion("        SystemUnsafe",   KMemoryLayout::GetKernelSystemNonSecurePoolRegionPhysicalExtents());
-        PrintMemoryRegion("        Applet",         KMemoryLayout::GetKernelAppletPoolRegionPhysicalExtents());
-        PrintMemoryRegion("        Application",    KMemoryLayout::GetKernelApplicationPoolRegionPhysicalExtents());
+        if (GetTargetFirmware() >= TargetFirmware_5_0_0) {
+            PrintMemoryRegion("        System",         KMemoryLayout::GetKernelSystemPoolRegionPhysicalExtents());
+            PrintMemoryRegion("        Management",     KMemoryLayout::GetKernelPoolManagementRegionPhysicalExtents());
+            PrintMemoryRegion("        SystemUnsafe",   KMemoryLayout::GetKernelSystemNonSecurePoolRegionPhysicalExtents());
+            PrintMemoryRegion("        Applet",         KMemoryLayout::GetKernelAppletPoolRegionPhysicalExtents());
+            PrintMemoryRegion("        Application",    KMemoryLayout::GetKernelApplicationPoolRegionPhysicalExtents());
+        } else {
+            PrintMemoryRegion("        Secure",     KMemoryLayout::GetKernelSystemPoolRegionPhysicalExtents());
+            PrintMemoryRegion("        Management", KMemoryLayout::GetKernelPoolManagementRegionPhysicalExtents());
+            PrintMemoryRegion("        Unsafe",     KMemoryLayout::GetKernelApplicationPoolRegionPhysicalExtents());
+        }
+        if constexpr (IsKTraceEnabled) {
+            MESOSPHERE_LOG("    Debug\n");
+            PrintMemoryRegion("        Trace Buffer",   KMemoryLayout::GetKernelTraceBufferRegionPhysicalExtents());
+        }
         MESOSPHERE_LOG("\n");
     }
 

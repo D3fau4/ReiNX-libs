@@ -40,6 +40,9 @@
 
 #define BITSIZEOF(x) (sizeof(x) * CHAR_BIT)
 
+#define STRINGIZE(x) STRINGIZE_IMPL(x)
+#define STRINGIZE_IMPL(x) #x
+
 #ifdef __COUNTER__
 #define ANONYMOUS_VARIABLE(pref) CONCATENATE(pref, __COUNTER__)
 #else
@@ -62,3 +65,20 @@
 #define AMS_ASSUME(expr) do { if (!static_cast<bool>((expr))) { __builtin_unreachable(); } } while (0)
 
 #define AMS_CURRENT_FUNCTION_NAME __FUNCTION__
+
+#if defined(__cplusplus)
+
+namespace ams::impl {
+
+    template<typename... ArgTypes>
+    constexpr ALWAYS_INLINE void UnusedImpl(ArgTypes &&... args) {
+        (static_cast<void>(args), ...);
+    }
+
+}
+
+#endif
+
+#define AMS_UNUSED(...) ::ams::impl::UnusedImpl(__VA_ARGS__)
+
+#define AMS_INFINITE_LOOP() do { __asm__ __volatile__("" ::: "memory"); } while (1)
