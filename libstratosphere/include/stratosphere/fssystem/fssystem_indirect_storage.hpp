@@ -53,7 +53,7 @@ namespace ams::fssystem {
                     return offset;
                 }
             };
-            static_assert(std::is_pod<Entry>::value);
+            static_assert(util::is_pod<Entry>::value);
             static_assert(sizeof(Entry) == 0x14);
 
             struct EntryData {
@@ -67,7 +67,7 @@ namespace ams::fssystem {
                     this->storage_index = entry.storage_index;
                 }
             };
-            static_assert(std::is_pod<EntryData>::value);
+            static_assert(util::is_pod<EntryData>::value);
         private:
             struct ContinuousReadingEntry {
                 static constexpr size_t FragmentSizeMax = 4_KB;
@@ -86,7 +86,7 @@ namespace ams::fssystem {
                     return this->entry.storage_index != 0;
                 }
             };
-            static_assert(std::is_pod<ContinuousReadingEntry>::value);
+            static_assert(util::is_pod<ContinuousReadingEntry>::value);
         public:
             static constexpr s64 QueryHeaderStorageSize() {
                 return BucketTree::QueryHeaderStorageSize();
@@ -133,7 +133,7 @@ namespace ams::fssystem {
 
             virtual Result GetSize(s64 *out) override {
                 AMS_ASSERT(out != nullptr);
-                *out = this->table.GetSize();
+                *out = this->table.GetEnd();
                 return ResultSuccess();
             }
 

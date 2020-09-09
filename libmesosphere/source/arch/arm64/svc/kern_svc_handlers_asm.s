@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <mesosphere/kern_build_config.hpp>
 
 /* ams::kern::arch::arm64::SvcHandler64() */
 .section    .text._ZN3ams4kern4arch5arm6412SvcHandler64Ev, "ax", %progbits
@@ -31,6 +32,7 @@ _ZN3ams4kern4arch5arm6412SvcHandler64Ev:
     mrs     x9, elr_el1
     mrs     x10, spsr_el1
     mrs     x11, tpidr_el0
+    mrs     x18, tpidr_el1
 
     /* Save callee-saved registers. */
     stp     x19, x20, [sp, #(8 * 19)]
@@ -63,8 +65,8 @@ _ZN3ams4kern4arch5arm6412SvcHandler64Ev:
     tst     x10, #1
     b.eq    3f
 
-    /* Check if our preemption state allows us to call SVCs. */
-    mrs     x10, tpidrro_el0
+    /* Check if our disable count allows us to call SVCs. */
+    ldr     x10, [x18, #0x30]
     ldrh    w10, [x10, #0x100]
     cbz     w10, 1f
 
@@ -82,8 +84,25 @@ _ZN3ams4kern4arch5arm6412SvcHandler64Ev:
     strb    w10, [sp, #(0x120 + 0x12)]
     strb    w8,  [sp, #(0x120 + 0x11)]
 
+    /* If we should, trace the svc entry. */
+#if defined(MESOSPHERE_BUILD_FOR_TRACING)
+    sub     sp, sp, #0x50
+    stp     x0,  x1,  [sp, #(8 *  0)]
+    stp     x2,  x3,  [sp, #(8 *  2)]
+    stp     x4,  x5,  [sp, #(8 *  4)]
+    stp     x6,  x7,  [sp, #(8 *  6)]
+    str     x11,      [sp, #(8 *  8)]
+    mov     x0, sp
+    bl      _ZN3ams4kern3svc13TraceSvcEntryEPKm
+    ldp     x0,  x1,  [sp, #(8 *  0)]
+    ldp     x2,  x3,  [sp, #(8 *  2)]
+    ldp     x4,  x5,  [sp, #(8 *  4)]
+    ldp     x6,  x7,  [sp, #(8 *  6)]
+    ldr     x11,      [sp, #(8 *  8)]
+    add     sp, sp, #0x50
+#endif
+
     /* Invoke the SVC handler. */
-    mrs     x18, tpidr_el1
     msr     daifclr, #2
     blr     x11
     msr     daifset, #2
@@ -163,6 +182,22 @@ _ZN3ams4kern4arch5arm6412SvcHandler64Ev:
     /* Clear our in-SVC note. */
     strb    wzr, [sp, #(0x120 + 0x12)]
 
+    /* If we should, trace the svc exit. */
+#if defined(MESOSPHERE_BUILD_FOR_TRACING)
+    sub     sp, sp, #0x40
+    stp     x0,  x1,  [sp, #(8 *  0)]
+    stp     x2,  x3,  [sp, #(8 *  2)]
+    stp     x4,  x5,  [sp, #(8 *  4)]
+    stp     x6,  x7,  [sp, #(8 *  6)]
+    mov     x0, sp
+    bl      _ZN3ams4kern3svc12TraceSvcExitEPKm
+    ldp     x0,  x1,  [sp, #(8 *  0)]
+    ldp     x2,  x3,  [sp, #(8 *  2)]
+    ldp     x4,  x5,  [sp, #(8 *  4)]
+    ldp     x6,  x7,  [sp, #(8 *  6)]
+    add     sp, sp, #0x40
+#endif
+
     /* Restore registers. */
     ldp     x30, x8,  [sp, #(8 * 30)]
     ldp     x9,  x10, [sp, #(8 * 32)]
@@ -211,6 +246,7 @@ _ZN3ams4kern4arch5arm6412SvcHandler32Ev:
     mrs     x17, elr_el1
     mrs     x20, spsr_el1
     mrs     x19, tpidr_el0
+    mrs     x18, tpidr_el1
     stp     x17, x20, [sp, #(8 * 32)]
     str     x19,      [sp, #(8 * 34)]
 
@@ -239,8 +275,8 @@ _ZN3ams4kern4arch5arm6412SvcHandler32Ev:
     tst     x17, #1
     b.eq    3f
 
-    /* Check if our preemption state allows us to call SVCs. */
-    mrs     x15, tpidrro_el0
+    /* Check if our disable count allows us to call SVCs. */
+    ldr     x15, [x18, #0x30]
     ldrh    w15, [x15, #0x100]
     cbz     w15, 1f
 
@@ -258,8 +294,25 @@ _ZN3ams4kern4arch5arm6412SvcHandler32Ev:
     strb    w15, [sp, #(0x120 + 0x12)]
     strb    w16, [sp, #(0x120 + 0x11)]
 
+    /* If we should, trace the svc entry. */
+#if defined(MESOSPHERE_BUILD_FOR_TRACING)
+    sub     sp, sp, #0x50
+    stp     x0,  x1,  [sp, #(8 *  0)]
+    stp     x2,  x3,  [sp, #(8 *  2)]
+    stp     x4,  x5,  [sp, #(8 *  4)]
+    stp     x6,  x7,  [sp, #(8 *  6)]
+    str     x19,      [sp, #(8 *  8)]
+    mov     x0, sp
+    bl      _ZN3ams4kern3svc13TraceSvcEntryEPKm
+    ldp     x0,  x1,  [sp, #(8 *  0)]
+    ldp     x2,  x3,  [sp, #(8 *  2)]
+    ldp     x4,  x5,  [sp, #(8 *  4)]
+    ldp     x6,  x7,  [sp, #(8 *  6)]
+    ldr     x19,      [sp, #(8 *  8)]
+    add     sp, sp, #0x50
+#endif
+
     /* Invoke the SVC handler. */
-    mrs     x18, tpidr_el1
     msr     daifclr, #2
     blr     x19
     msr     daifset, #2
@@ -326,6 +379,22 @@ _ZN3ams4kern4arch5arm6412SvcHandler32Ev:
 4:  /* Return from SVC. */
     /* Clear our in-SVC note. */
     strb    wzr, [sp, #(0x120 + 0x12)]
+
+    /* If we should, trace the svc exit. */
+#if defined(MESOSPHERE_BUILD_FOR_TRACING)
+    sub     sp, sp, #0x40
+    stp     x0,  x1,  [sp, #(8 *  0)]
+    stp     x2,  x3,  [sp, #(8 *  2)]
+    stp     x4,  x5,  [sp, #(8 *  4)]
+    stp     x6,  x7,  [sp, #(8 *  6)]
+    mov     x0, sp
+    bl      _ZN3ams4kern3svc12TraceSvcExitEPKm
+    ldp     x0,  x1,  [sp, #(8 *  0)]
+    ldp     x2,  x3,  [sp, #(8 *  2)]
+    ldp     x4,  x5,  [sp, #(8 *  4)]
+    ldp     x6,  x7,  [sp, #(8 *  6)]
+    add     sp, sp, #0x40
+#endif
 
     /* Restore registers. */
     ldp     x8,  x9,  [sp, #(8 *  8)]

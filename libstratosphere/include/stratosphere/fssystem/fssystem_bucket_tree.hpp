@@ -40,7 +40,7 @@ namespace ams::fssystem {
                 void Format(s32 entry_count);
                 Result Verify() const;
             };
-            static_assert(std::is_pod<Header>::value);
+            static_assert(util::is_pod<Header>::value);
             static_assert(sizeof(Header) == 0x10);
 
             struct NodeHeader {
@@ -50,7 +50,7 @@ namespace ams::fssystem {
 
                 Result Verify(s32 node_index, size_t node_size, size_t entry_size) const;
             };
-            static_assert(std::is_pod<NodeHeader>::value);
+            static_assert(util::is_pod<NodeHeader>::value);
             static_assert(sizeof(NodeHeader) == 0x10);
 
             class ContinuousReadingInfo {
@@ -126,7 +126,7 @@ namespace ams::fssystem {
                         this->allocator = nullptr;
                     }
 
-                    void FillSzero(size_t node_size) const {
+                    void FillZero(size_t node_size) const {
                         if (this->header) {
                             std::memset(this->header, 0, node_size);
                         }
@@ -140,7 +140,7 @@ namespace ams::fssystem {
 
                     template<typename T>
                     T *Get() const {
-                        static_assert(std::is_pod<T>::value);
+                        static_assert(util::is_pod<T>::value);
                         static_assert(sizeof(T) == sizeof(NodeHeader));
                         return reinterpret_cast<T *>(this->header);
                     }
@@ -278,9 +278,9 @@ namespace ams::fssystem {
                     s64 end;
                     s64 start;
                 } info;
-                static_assert(std::is_pod<Info>::value);
+                static_assert(util::is_pod<Info>::value);
             };
-            static_assert(std::is_pod<EntrySetHeader>::value);
+            static_assert(util::is_pod<EntrySetHeader>::value);
         private:
             const BucketTree *tree;
             void *entry;
@@ -298,7 +298,7 @@ namespace ams::fssystem {
             }
 
             bool IsValid() const { return this->entry_index >= 0; }
-            bool CanMoveNext() const { return this->IsValid() && (this->entry_index + 1 < this->entry_set.info.count || this->entry_set.info.index + 1 < this->entry_set.info.count); }
+            bool CanMoveNext() const { return this->IsValid() && (this->entry_index + 1 < this->entry_set.info.count || this->entry_set.info.index + 1 < this->entry_set_count); }
             bool CanMovePrevious() const { return this->IsValid() && (this->entry_index > 0 || this->entry_set.info.index > 0); }
 
             Result MoveNext();
